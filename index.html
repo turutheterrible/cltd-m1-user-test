@@ -1,0 +1,1057 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <title>CLTD M1 Interactive Study Guide</title>
+  <style>
+    :root {
+      --bg: #efe7d8;
+      --bg-2: #f5f1e8;
+      --card: rgba(255, 252, 245, 0.9);
+      --ink: #1d2a27;
+      --muted: #5b6760;
+      --accent: #1f7a5d;
+      --accent-2: #d26d37;
+      --accent-3: #f2c66d;
+      --line: rgba(40, 60, 48, 0.1);
+      --shadow: 0 16px 40px rgba(25, 35, 30, 0.12);
+      --radius: 24px;
+      --safe-top: max(env(safe-area-inset-top), 14px);
+      --safe-right: max(env(safe-area-inset-right), 14px);
+      --safe-bottom: max(env(safe-area-inset-bottom), 14px);
+      --safe-left: max(env(safe-area-inset-left), 14px);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(210, 109, 55, 0.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(31, 122, 93, 0.14), transparent 26%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+      color: var(--ink);
+    }
+
+    body {
+      position: fixed;
+      inset: 0;
+    }
+
+    .viewport {
+      position: relative;
+      width: 100vw;
+      height: 100dvh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+
+    .viewport::-webkit-scrollbar {
+      display: none;
+    }
+
+    .page {
+      position: relative;
+      min-height: 100dvh;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      padding:
+        calc(var(--safe-top) + 50px)
+        calc(var(--safe-right) + 18px)
+        calc(var(--safe-bottom) + 92px)
+        calc(var(--safe-left) + 18px);
+      display: flex;
+      align-items: stretch;
+    }
+
+    .sheet {
+      width: min(100%, 760px);
+      margin: 0 auto;
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .eyebrow {
+      font-size: 0.76rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 8vw, 3.2rem);
+      line-height: 0.98;
+    }
+
+    h2 {
+      font-size: clamp(1.35rem, 5vw, 2rem);
+      line-height: 1.05;
+    }
+
+    h3 {
+      font-size: 1rem;
+      line-height: 1.2;
+    }
+
+    p, li, label, button, .meta, .choice-explain {
+      font-size: 1rem;
+      line-height: 1.45;
+    }
+
+    .lede {
+      color: var(--muted);
+      font-size: 1.03rem;
+    }
+
+    .hero-grid,
+    .stats,
+    .chips,
+    .choices {
+      display: grid;
+      gap: 10px;
+    }
+
+    .stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stat {
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid var(--line);
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .chips {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .chip {
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.8);
+      text-align: center;
+      font-size: 0.88rem;
+    }
+
+    .callout,
+    .reward,
+    .tip {
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.78);
+    }
+
+    .reward {
+      background: linear-gradient(135deg, rgba(242, 198, 109, 0.22), rgba(255, 255, 255, 0.78));
+      border-color: rgba(210, 109, 55, 0.18);
+    }
+
+    .tip {
+      border-left: 4px solid var(--accent-2);
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .pager {
+      position: fixed;
+      top: var(--safe-top);
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(calc(100vw - 24px), 780px);
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .pager-card {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255, 252, 245, 0.76);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.58);
+      box-shadow: var(--shadow);
+      font-size: 0.88rem;
+    }
+
+    .pager-card strong {
+      color: var(--accent);
+    }
+
+    .edge-progress {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 25;
+    }
+
+    .edge {
+      position: absolute;
+      background: linear-gradient(90deg, var(--accent), var(--accent-3));
+      box-shadow: 0 0 14px rgba(31, 122, 93, 0.32);
+    }
+
+    .edge.top,
+    .edge.bottom {
+      left: 0;
+      width: 100%;
+      height: 5px;
+      transform: scaleX(0);
+    }
+
+    .edge.left,
+    .edge.right {
+      top: 0;
+      width: 5px;
+      height: 100%;
+      transform: scaleY(0);
+    }
+
+    .edge.top { top: 0; transform-origin: left center; }
+    .edge.right { right: 0; transform-origin: center top; }
+    .edge.bottom { bottom: 0; transform-origin: right center; }
+    .edge.left { left: 0; transform-origin: center bottom; }
+
+    .bottom-bar {
+      position: fixed;
+      left: 50%;
+      bottom: var(--safe-bottom);
+      transform: translateX(-50%);
+      width: min(calc(100vw - 24px), 780px);
+      z-index: 22;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 24px;
+      background: rgba(255, 252, 245, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.58);
+      box-shadow: var(--shadow);
+    }
+
+    .nav-btn {
+      border: 0;
+      background: rgba(255, 255, 255, 0.84);
+      color: var(--ink);
+      border-radius: 16px;
+      padding: 12px 14px;
+      font: inherit;
+      min-width: 74px;
+      cursor: pointer;
+    }
+
+    .nav-btn.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .page-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: rgba(31, 42, 39, 0.18);
+      transition: transform 140ms ease, background 140ms ease;
+    }
+
+    .dot.active {
+      background: var(--accent);
+      transform: scale(1.25);
+    }
+
+    .choice {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.88);
+      padding: 14px;
+      font: inherit;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .choice.correct {
+      background: rgba(208, 239, 220, 0.92);
+      border-color: rgba(31, 122, 93, 0.34);
+      color: #0f5a41;
+    }
+
+    .choice.wrong {
+      background: rgba(255, 228, 226, 0.95);
+      border-color: rgba(210, 109, 55, 0.34);
+      color: #8d3b2d;
+    }
+
+    .choice:disabled {
+      opacity: 1;
+    }
+
+    .choice-explain {
+      color: var(--muted);
+      min-height: 42px;
+    }
+
+    .micro-progress {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .micro-progress span {
+      flex: 1;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(31, 42, 39, 0.1);
+    }
+
+    .micro-progress span.on {
+      background: linear-gradient(90deg, var(--accent), var(--accent-3));
+    }
+
+    .tap-reveal {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.84);
+      padding: 14px;
+      cursor: pointer;
+    }
+
+    .tap-reveal p:last-child {
+      display: none;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .tap-reveal.open p:last-child {
+      display: block;
+    }
+
+    .page[data-complete="true"] .sheet {
+      box-shadow: 0 18px 42px rgba(31, 122, 93, 0.18);
+    }
+
+    .full-note {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .toast {
+      position: fixed;
+      top: calc(var(--safe-top) + 58px);
+      right: var(--safe-right);
+      z-index: 40;
+      max-width: 260px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(31, 122, 93, 0.96);
+      color: #fff;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (min-width: 700px) {
+      .sheet {
+        padding: 28px 26px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="edge-progress" aria-hidden="true">
+    <div class="edge top" id="edgeTop"></div>
+    <div class="edge right" id="edgeRight"></div>
+    <div class="edge bottom" id="edgeBottom"></div>
+    <div class="edge left" id="edgeLeft"></div>
+  </div>
+
+  <div class="pager">
+    <div class="pager-card"><strong id="pageLabel">Page 1</strong> <span id="sectionLabel">Intro</span></div>
+    <div class="pager-card"><strong id="sectionProgress">Section 0%</strong></div>
+  </div>
+
+  <main class="viewport" id="viewport">
+    <section class="page" data-page="0" data-section="Intro" data-key="hero">
+      <div class="sheet">
+        <div class="eyebrow">CLTD 2025 • Module 1</div>
+        <h1>Logistics Fundamentals and Strategy</h1>
+        <p class="lede">Swipe up through full-screen pages. Each page is a contained study moment, and moving to the next page should feel like progress.</p>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">Level</div>
+            <div class="stat-value" id="levelValue">1</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">XP</div>
+            <div class="stat-value" id="xpValue">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Study Time</div>
+            <div class="stat-value" id="timeValue">0m</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Quiz Score</div>
+            <div class="stat-value" id="quizValue">0/5</div>
+          </div>
+        </div>
+        <div class="chips">
+          <div class="chip">Full-screen pages</div>
+          <div class="chip">Soft page swish</div>
+          <div class="chip">XP rewards</div>
+        </div>
+        <div class="reward">
+          <h3>How XP works</h3>
+          <p>+8 XP for landing on a new page, +5 XP per study minute, +20 XP for a correct quiz answer, and +15 XP when a whole section is completed.</p>
+        </div>
+        <p class="full-note">Small note: Safari’s browser/search bar cannot be fully hidden by a webpage. This layout uses `100dvh` and app-style chrome, and it feels most full-screen if you add it to the iPhone home screen.</p>
+      </div>
+    </section>
+
+    <section class="page" data-page="1" data-section="Section A" data-key="a-map">
+      <div class="sheet">
+        <div class="eyebrow">Section A</div>
+        <h2>Recognize Logistics Fundamentals</h2>
+        <div class="callout">
+          <p>Module 1 starts by defining what logistics is, why it matters, and why isolated decisions can hurt the whole system.</p>
+        </div>
+        <ul>
+          <li>History, definitions, and scope</li>
+          <li>Total cost and tradeoffs</li>
+          <li>Drivers, components, and flows</li>
+        </ul>
+        <div class="micro-progress" data-micro="A">
+          <span class="micro-a1"></span>
+          <span class="micro-a2"></span>
+          <span class="micro-a3"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" data-page="2" data-section="Section A" data-key="a-history">
+      <div class="sheet">
+        <div class="eyebrow">Section A • Page 2</div>
+        <h2>History, Definitions, and Scope</h2>
+        <ul>
+          <li>Logistics has old military and trade roots, but modern business logistics became strategic when companies saw how tightly transport, warehousing, inventory, packaging, and order management interact.</li>
+          <li>The scope is broader than shipping. Logistics coordinates flow, storage, timing, information, and execution across fulfillment.</li>
+          <li>Great logistics helps meet demand at the right place, time, and cost.</li>
+        </ul>
+        <div class="tip">
+          <h3>Say it simply</h3>
+          <p>Logistics is how an organization gets the right thing to the right place at the right time with the right support.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" data-page="3" data-section="Section A" data-key="a-cost">
+      <div class="sheet">
+        <div class="eyebrow">Section A • Page 3</div>
+        <h2>Total Cost and Tradeoffs</h2>
+        <ul>
+          <li>The total cost concept means choosing the option with the best total logistics result, not the cheapest isolated function.</li>
+          <li>Cost buckets include local delivery, primary transport, distribution center, inventory carrying, information system, and additional system costs.</li>
+          <li>A tradeoff happens when one improvement creates a cost or service downside somewhere else.</li>
+        </ul>
+        <div class="tap-reveal" data-reveal>
+          <p><strong>Tap for a fast example</strong></p>
+          <p>A slower shipping mode may cut freight cost, but it can force higher inventory and hurt service responsiveness.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" data-page="4" data-section="Section B" data-key="b-role">
+      <div class="sheet">
+        <div class="eyebrow">Section B</div>
+        <h2>Role, Value, and Cost of Logistics</h2>
+        <ul>
+          <li>Supply chain management is broader than logistics. It includes network design, planning, execution, control, and synchronization across the whole chain.</li>
+          <li>Logistics remains a core capability inside SCM because it executes and coordinates physical and information flows.</li>
+          <li>Value shows up in service, resilience, customer satisfaction, competitiveness, and disciplined cost management.</li>
+        </ul>
+        <div class="tip">
+          <h3>Maturity ladder</h3>
+          <p>Multiple dysfunction -> Semifunctional enterprise -> Integrated enterprise -> Extended enterprise -> Orchestrated supply chain.</p>
+        </div>
+        <div class="micro-progress" data-micro="B">
+          <span class="micro-b1"></span>
+          <span class="micro-b2"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" data-page="5" data-section="Section B" data-key="b-value">
+      <div class="sheet">
+        <div class="eyebrow">Section B • Page 2</div>
+        <h2>How Logistics Creates Value</h2>
+        <ul>
+          <li>Better logistics can improve customer experience and increase competitive advantage.</li>
+          <li>Strong logistics leadership also manages transportation, labor, and inventory costs with a wider business lens.</li>
+          <li>Module 1 also links logistics to resilience and sustainability, not just cost cutting.</li>
+        </ul>
+        <div class="reward">
+          <h3>Achievement cue</h3>
+          <p>If you can explain why logistics matters beyond shipping cost, you understand the heart of Section B.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" data-page="6" data-section="Section C" data-key="c-strategy">
+      <div class="sheet">
+        <div class="eyebrow">Section C</div>
+        <h2>Develop Logistics Strategy</h2>
+        <ul>
+          <li>Logistics strategy should align with company and supply chain goals.</li>
+          <li>Module 1 emphasizes strategic, tactical, and operational alignment.</li>
+          <li>A logistics value proposition is the promise of value delivered to a target customer or stakeholder group.</li>
+        </ul>
+        <div class="callout">
+          <p>Three strategy lenses: <strong>process</strong>, <strong>market</strong>, and <strong>information</strong>.</p>
+        </div>
+        <div class="micro-progress" data-micro="C">
+          <span class="micro-c1"></span>
+          <span class="micro-c2"></span>
+          <span class="micro-c3"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" data-page="7" data-section="Section C" data-key="c-eers">
+      <div class="sheet">
+        <div class="eyebrow">Section C • Page 2</div>
+        <h2>EERS and Design Choices</h2>
+        <ul>
+          <li><strong>EERS</strong> stands for effective, efficient, relevant, and sustainable.</li>
+          <li>Optimization requires systems thinking across warehousing, inventory, transportation, labor, and technology.</li>
+          <li>Segmentation, contracting, and product life cycle stage can all change the right logistics design.</li>
+        </ul>
+        <div class="tip">
+          <h3>Memory shortcut</h3>
+          <p>If a strategy is cheap but not relevant or sustainable, Module 1 would not call it strong enough.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" data-page="8" data-section="Quiz" data-key="q1">
+      <div class="sheet">
+        <div class="eyebrow">Key Term Quiz 1 of 5</div>
+        <h2>What does the total cost concept prioritize?</h2>
+        <div class="choices" data-question="q1" data-correct="1">
+          <button class="choice" type="button" data-index="0">The cheapest transportation option by itself</button>
+          <button class="choice" type="button" data-index="1">The lowest total logistics cost while meeting required service</button>
+          <button class="choice" type="button" data-index="2">The highest service level no matter the cost</button>
+        </div>
+        <p class="choice-explain" id="exp-q1"></p>
+      </div>
+    </section>
+
+    <section class="page" data-page="9" data-section="Quiz" data-key="q2">
+      <div class="sheet">
+        <div class="eyebrow">Key Term Quiz 2 of 5</div>
+        <h2>Which best defines a logistics tradeoff?</h2>
+        <div class="choices" data-question="q2" data-correct="2">
+          <button class="choice" type="button" data-index="0">Improving all logistics metrics at once with no downside</button>
+          <button class="choice" type="button" data-index="1">A synonym for outsourcing</button>
+          <button class="choice" type="button" data-index="2">Improving one area while creating a cost or service downside in another</button>
+        </div>
+        <p class="choice-explain" id="exp-q2"></p>
+      </div>
+    </section>
+
+    <section class="page" data-page="10" data-section="Quiz" data-key="q3">
+      <div class="sheet">
+        <div class="eyebrow">Key Term Quiz 3 of 5</div>
+        <h2>How is SCM different from logistics?</h2>
+        <div class="choices" data-question="q3" data-correct="0">
+          <button class="choice" type="button" data-index="0">SCM has broader end-to-end design and coordination scope</button>
+          <button class="choice" type="button" data-index="1">SCM only refers to warehousing</button>
+          <button class="choice" type="button" data-index="2">Logistics is broader than SCM</button>
+        </div>
+        <p class="choice-explain" id="exp-q3"></p>
+      </div>
+    </section>
+
+    <section class="page" data-page="11" data-section="Quiz" data-key="q4">
+      <div class="sheet">
+        <div class="eyebrow">Key Term Quiz 4 of 5</div>
+        <h2>Which set names the strategy lenses from Module 1?</h2>
+        <div class="choices" data-question="q4" data-correct="2">
+          <button class="choice" type="button" data-index="0">Lean, agile, six sigma</button>
+          <button class="choice" type="button" data-index="1">Sales, procurement, finance</button>
+          <button class="choice" type="button" data-index="2">Process, market, information</button>
+        </div>
+        <p class="choice-explain" id="exp-q4"></p>
+      </div>
+    </section>
+
+    <section class="page" data-page="12" data-section="Quiz" data-key="q5">
+      <div class="sheet">
+        <div class="eyebrow">Key Term Quiz 5 of 5</div>
+        <h2>What does EERS stand for?</h2>
+        <div class="choices" data-question="q5" data-correct="1">
+          <button class="choice" type="button" data-index="0">Economic, expedited, resilient, standardized</button>
+          <button class="choice" type="button" data-index="1">Effective, efficient, relevant, sustainable</button>
+          <button class="choice" type="button" data-index="2">Efficient, external, regulated, segmented</button>
+        </div>
+        <p class="choice-explain" id="exp-q5"></p>
+      </div>
+    </section>
+
+    <section class="page" data-page="13" data-section="Finish" data-key="finish">
+      <div class="sheet">
+        <div class="eyebrow">Module Complete</div>
+        <h2>You finished the Module 1 path</h2>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">Final Level</div>
+            <div class="stat-value" id="finishLevel">1</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Final XP</div>
+            <div class="stat-value" id="finishXp">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Quiz Correct</div>
+            <div class="stat-value" id="finishQuiz">0/5</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Study Time</div>
+            <div class="stat-value" id="finishTime">0m</div>
+          </div>
+        </div>
+        <div class="reward">
+          <h3>What completion means</h3>
+          <p>You touched every major Section A, B, and C concept, then checked the core terms with multiple choice questions.</p>
+        </div>
+        <div class="stack">
+          <button class="nav-btn primary" type="button" id="restartBtn">Restart Module</button>
+          <p class="full-note">Best next step: duplicate this exact structure for Module 2 so the whole CLTD series feels consistent.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="bottom-bar">
+    <button class="nav-btn" type="button" id="prevBtn">Prev</button>
+    <div class="page-dots" id="pageDots"></div>
+    <button class="nav-btn primary" type="button" id="nextBtn">Next</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const storageKey = "cltd-m1-paged-study";
+    const viewport = document.getElementById("viewport");
+    const pages = Array.from(document.querySelectorAll(".page"));
+    const dotsWrap = document.getElementById("pageDots");
+    const pageLabel = document.getElementById("pageLabel");
+    const sectionLabel = document.getElementById("sectionLabel");
+    const sectionProgress = document.getElementById("sectionProgress");
+    const toast = document.getElementById("toast");
+    const levelValue = document.getElementById("levelValue");
+    const xpValue = document.getElementById("xpValue");
+    const timeValue = document.getElementById("timeValue");
+    const quizValue = document.getElementById("quizValue");
+    const finishLevel = document.getElementById("finishLevel");
+    const finishXp = document.getElementById("finishXp");
+    const finishQuiz = document.getElementById("finishQuiz");
+    const finishTime = document.getElementById("finishTime");
+    const edgeTop = document.getElementById("edgeTop");
+    const edgeRight = document.getElementById("edgeRight");
+    const edgeBottom = document.getElementById("edgeBottom");
+    const edgeLeft = document.getElementById("edgeLeft");
+    const sectionPages = {
+      "Section A": ["a-map", "a-history", "a-cost"],
+      "Section B": ["b-role", "b-value"],
+      "Section C": ["c-strategy", "c-eers"],
+      "Quiz": ["q1", "q2", "q3", "q4", "q5"]
+    };
+
+    function defaultState() {
+      return {
+        xp: 0,
+        seconds: 0,
+        awardedMinutes: 0,
+        visited: [],
+        quiz: {},
+        currentPage: 0,
+        sectionAwards: []
+      };
+    }
+
+    function loadState() {
+      try {
+        return { ...defaultState(), ...(JSON.parse(localStorage.getItem(storageKey) || "{}")) };
+      } catch {
+        return defaultState();
+      }
+    }
+
+    let state = loadState();
+    let currentPage = state.currentPage || 0;
+    let audioUnlocked = false;
+    let audioCtx;
+    let toastTimer;
+
+    function saveState() {
+      localStorage.setItem(storageKey, JSON.stringify(state));
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function ensureAudio() {
+      if (audioUnlocked) return;
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      audioCtx = new Ctx();
+      audioUnlocked = true;
+    }
+
+    function beep(freq, duration, type, volume, delay = 0) {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime + delay;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(volume, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + duration + 0.03);
+    }
+
+    function playSwish() {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.18, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i += 1) {
+        const progress = i / data.length;
+        data[i] = (Math.random() * 2 - 1) * (1 - progress) * 0.08;
+      }
+      const source = audioCtx.createBufferSource();
+      const filter = audioCtx.createBiquadFilter();
+      const gain = audioCtx.createGain();
+      filter.type = "bandpass";
+      filter.frequency.setValueAtTime(1800, now);
+      filter.frequency.exponentialRampToValueAtTime(500, now + 0.18);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.18, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+      source.buffer = buffer;
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      source.start(now);
+    }
+
+    function playReward() {
+      beep(620, 0.16, "sine", 0.08);
+      beep(880, 0.18, "triangle", 0.07, 0.08);
+    }
+
+    function addXp(amount, reason, rewardSound = false) {
+      state.xp += amount;
+      saveState();
+      renderStats();
+      showToast(`+${amount} XP • ${reason}`);
+      if (rewardSound) playReward();
+    }
+
+    function levelFromXp(xp) {
+      return Math.floor(xp / 100) + 1;
+    }
+
+    function renderStats() {
+      const quizCorrect = Object.values(state.quiz).filter(Boolean).length;
+      levelValue.textContent = levelFromXp(state.xp);
+      xpValue.textContent = state.xp;
+      timeValue.textContent = `${Math.floor(state.seconds / 60)}m`;
+      quizValue.textContent = `${quizCorrect}/5`;
+      finishLevel.textContent = levelFromXp(state.xp);
+      finishXp.textContent = state.xp;
+      finishQuiz.textContent = `${quizCorrect}/5`;
+      finishTime.textContent = `${Math.floor(state.seconds / 60)}m`;
+    }
+
+    function setEdgeProgress(percent) {
+      const p = Math.max(0, Math.min(1, percent));
+      const perim = p * 4;
+      edgeTop.style.transform = `scaleX(${Math.min(perim, 1)})`;
+      edgeRight.style.transform = `scaleY(${Math.max(0, Math.min(perim - 1, 1))})`;
+      edgeBottom.style.transform = `scaleX(${Math.max(0, Math.min(perim - 2, 1))})`;
+      edgeLeft.style.transform = `scaleY(${Math.max(0, Math.min(perim - 3, 1))})`;
+    }
+
+    function renderDots() {
+      dotsWrap.innerHTML = "";
+      pages.forEach((_, index) => {
+        const dot = document.createElement("span");
+        dot.className = `dot${index === currentPage ? " active" : ""}`;
+        dotsWrap.appendChild(dot);
+      });
+    }
+
+    function getSectionPercent(section) {
+      const keys = sectionPages[section];
+      if (!keys) return 0;
+      const visited = keys.filter((key) => state.visited.includes(key)).length;
+      return Math.round((visited / keys.length) * 100);
+    }
+
+    function maybeAwardSection(section) {
+      const keys = sectionPages[section];
+      if (!keys || state.sectionAwards.includes(section)) return;
+      const done = keys.every((key) => state.visited.includes(key) || state.quiz[key] !== undefined);
+      if (done) {
+        state.sectionAwards.push(section);
+        addXp(15, `${section} completed`, true);
+      }
+    }
+
+    function setCurrentPage(index, smooth = true) {
+      currentPage = Math.max(0, Math.min(index, pages.length - 1));
+      state.currentPage = currentPage;
+      saveState();
+      pages[currentPage].scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+      updatePageUI();
+    }
+
+    function updatePageUI() {
+      const page = pages[currentPage];
+      const label = currentPage === pages.length - 1 ? "Finish" : `Page ${currentPage + 1}`;
+      pageLabel.textContent = label;
+      sectionLabel.textContent = page.dataset.section;
+      sectionProgress.textContent = `${page.dataset.section} ${getSectionPercent(page.dataset.section)}%`;
+      renderDots();
+      setEdgeProgress(currentPage / (pages.length - 1));
+    }
+
+    function unlockAudioOnce() {
+      ensureAudio();
+      window.removeEventListener("touchstart", unlockAudioOnce);
+      window.removeEventListener("click", unlockAudioOnce);
+    }
+
+    window.addEventListener("touchstart", unlockAudioOnce, { once: true, passive: true });
+    window.addEventListener("click", unlockAudioOnce, { once: true });
+
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!visible) return;
+      const page = visible.target;
+      const index = Number(page.dataset.page);
+      if (index !== currentPage) {
+        currentPage = index;
+        state.currentPage = currentPage;
+        saveState();
+        if (audioUnlocked) playSwish();
+      }
+      const key = page.dataset.key;
+      if (!state.visited.includes(key)) {
+        state.visited.push(key);
+        page.dataset.complete = "true";
+        addXp(8, "new page reached", false);
+      } else {
+        page.dataset.complete = "true";
+        renderStats();
+      }
+      maybeAwardSection(page.dataset.section);
+      updatePageUI();
+      updateMicroProgress();
+    }, { threshold: 0.62 });
+
+    pages.forEach((page) => observer.observe(page));
+
+    function updateMicroProgress() {
+      const map = {
+        "micro-a1": "a-map",
+        "micro-a2": "a-history",
+        "micro-a3": "a-cost",
+        "micro-b1": "b-role",
+        "micro-b2": "b-value",
+        "micro-c1": "c-strategy",
+        "micro-c2": "c-eers",
+        "micro-c3": "finish"
+      };
+      Object.entries(map).forEach(([className, key]) => {
+        document.querySelectorAll(`.${className}`).forEach((el) => {
+          el.classList.toggle("on", state.visited.includes(key));
+        });
+      });
+    }
+
+    document.querySelectorAll("[data-reveal]").forEach((card) => {
+      card.addEventListener("click", () => {
+        card.classList.toggle("open");
+      });
+    });
+
+    const explainers = {
+      q1: "Correct answer: the total cost concept compares the whole logistics system, not one isolated cost bucket.",
+      q2: "Correct answer: a tradeoff means one improvement creates a downside elsewhere.",
+      q3: "Correct answer: SCM has broader end-to-end network scope than logistics.",
+      q4: "Correct answer: process, market, and information.",
+      q5: "Correct answer: effective, efficient, relevant, sustainable."
+    };
+
+    document.querySelectorAll(".choices").forEach((wrap) => {
+      const key = wrap.dataset.question;
+      const correct = Number(wrap.dataset.correct);
+      const buttons = Array.from(wrap.querySelectorAll(".choice"));
+      const explain = document.getElementById(`exp-${key}`);
+
+      function paintSaved() {
+        if (state.quiz[key] === undefined) return;
+        buttons.forEach((btn) => {
+          const idx = Number(btn.dataset.index);
+          btn.disabled = true;
+          if (idx === correct) btn.classList.add("correct");
+          if (idx === state.quiz[key] && idx !== correct) btn.classList.add("wrong");
+        });
+        explain.textContent = explainers[key];
+      }
+
+      paintSaved();
+
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (state.quiz[key] !== undefined) return;
+          const chosen = Number(btn.dataset.index);
+          state.quiz[key] = chosen;
+          saveState();
+          buttons.forEach((button) => {
+            const idx = Number(button.dataset.index);
+            button.disabled = true;
+            if (idx === correct) button.classList.add("correct");
+            if (idx === chosen && idx !== correct) button.classList.add("wrong");
+          });
+          explain.textContent = explainers[key];
+          if (chosen === correct) {
+            addXp(20, "correct answer", true);
+          } else {
+            showToast("Review the highlighted answer");
+          }
+          renderStats();
+          maybeAwardSection("Quiz");
+        });
+      });
+    });
+
+    document.getElementById("prevBtn").addEventListener("click", () => setCurrentPage(currentPage - 1));
+    document.getElementById("nextBtn").addEventListener("click", () => setCurrentPage(currentPage + 1));
+    document.getElementById("restartBtn").addEventListener("click", () => {
+      localStorage.removeItem(storageKey);
+      location.reload();
+    });
+
+    setInterval(() => {
+      if (document.hidden) return;
+      state.seconds += 1;
+      const minutes = Math.floor(state.seconds / 60);
+      if (minutes > state.awardedMinutes) {
+        state.awardedMinutes = minutes;
+        addXp(5, "study minute", true);
+      } else {
+        saveState();
+        renderStats();
+      }
+    }, 1000);
+
+    renderStats();
+    updateMicroProgress();
+    pages.forEach((page) => {
+      if (state.visited.includes(page.dataset.key)) page.dataset.complete = "true";
+    });
+    setCurrentPage(state.currentPage || 0, false);
+  </script>
+</body>
+</html>

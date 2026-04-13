@@ -1,0 +1,10 @@
+{
+  "name": "CLTD M1 Study Guide",
+  "short_name": "CLTD M1",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#efe7d8",
+  "theme_color": "#1f7a5d",
+  "description": "Interactive full-screen CLTD Module 1 study guide for iPhone user testing.",
+  "icons": []
+}
