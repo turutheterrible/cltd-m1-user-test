@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="./manifest.webmanifest">
   <title>CLTD M1 Interactive Study Guide</title>
   <style>
     :root {
@@ -305,6 +304,11 @@
       color: #fff;
     }
 
+    .nav-btn.sound-on {
+      background: var(--accent-2);
+      color: #fff;
+    }
+
     .page-dots {
       display: flex;
       gap: 6px;
@@ -481,6 +485,10 @@
         <div class="reward">
           <h3>How XP works</h3>
           <p>+8 XP for landing on a new page, +5 XP per study minute, +20 XP for a correct quiz answer, and +15 XP when a whole section is completed.</p>
+        </div>
+        <div class="callout">
+          <h3>Sound on iPhone</h3>
+          <p>Tap <strong>Enable Sound</strong> once before swiping if Safari has sound locked.</p>
         </div>
         <p class="full-note">Small note: Safari’s browser/search bar cannot be fully hidden by a webpage. This layout uses `100dvh` and app-style chrome, and it feels most full-screen if you add it to the iPhone home screen.</p>
       </div>
@@ -712,6 +720,7 @@
   <div class="bottom-bar">
     <button class="nav-btn" type="button" id="prevBtn">Prev</button>
     <div class="page-dots" id="pageDots"></div>
+    <button class="nav-btn sound-on" type="button" id="soundBtn">Enable Sound</button>
     <button class="nav-btn primary" type="button" id="nextBtn">Next</button>
   </div>
 
@@ -738,6 +747,7 @@
     const edgeRight = document.getElementById("edgeRight");
     const edgeBottom = document.getElementById("edgeBottom");
     const edgeLeft = document.getElementById("edgeLeft");
+    const soundBtn = document.getElementById("soundBtn");
     const sectionPages = {
       "Section A": ["a-map", "a-history", "a-cost"],
       "Section B": ["b-role", "b-value"],
@@ -783,11 +793,35 @@
     }
 
     function ensureAudio() {
-      if (audioUnlocked) return;
       const Ctx = window.AudioContext || window.webkitAudioContext;
       if (!Ctx) return;
-      audioCtx = new Ctx();
-      audioUnlocked = true;
+      if (!audioCtx) audioCtx = new Ctx();
+    }
+
+    async function unlockAudio() {
+      ensureAudio();
+      if (!audioCtx) {
+        showToast("Audio not supported here");
+        return false;
+      }
+      try {
+        if (audioCtx.state !== "running") {
+          await audioCtx.resume();
+        }
+        audioUnlocked = audioCtx.state === "running";
+      } catch {
+        audioUnlocked = false;
+      }
+      if (audioUnlocked) {
+        soundBtn.textContent = "Sound On";
+        soundBtn.classList.remove("sound-on");
+        beep(660, 0.12, "sine", 0.05);
+        beep(880, 0.12, "triangle", 0.04, 0.06);
+        showToast("Sound enabled");
+        return true;
+      }
+      showToast("Tap again to enable sound");
+      return false;
     }
 
     function beep(freq, duration, type, volume, delay = 0) {
@@ -913,14 +947,16 @@
       setEdgeProgress(currentPage / (pages.length - 1));
     }
 
-    function unlockAudioOnce() {
-      ensureAudio();
-      window.removeEventListener("touchstart", unlockAudioOnce);
-      window.removeEventListener("click", unlockAudioOnce);
+    async function unlockAudioOnce() {
+      const ok = await unlockAudio();
+      if (ok) {
+        window.removeEventListener("touchstart", unlockAudioOnce);
+        window.removeEventListener("click", unlockAudioOnce);
+      }
     }
 
-    window.addEventListener("touchstart", unlockAudioOnce, { once: true, passive: true });
-    window.addEventListener("click", unlockAudioOnce, { once: true });
+    window.addEventListener("touchstart", unlockAudioOnce, { passive: true });
+    window.addEventListener("click", unlockAudioOnce);
 
     const observer = new IntersectionObserver((entries) => {
       const visible = entries
@@ -1028,9 +1064,24 @@
 
     document.getElementById("prevBtn").addEventListener("click", () => setCurrentPage(currentPage - 1));
     document.getElementById("nextBtn").addEventListener("click", () => setCurrentPage(currentPage + 1));
+    soundBtn.addEventListener("click", async () => {
+      await unlockAudio();
+    });
     document.getElementById("restartBtn").addEventListener("click", () => {
       localStorage.removeItem(storageKey);
       location.reload();
+    });
+
+    document.addEventListener("visibilitychange", async () => {
+      if (!document.hidden && audioCtx && audioCtx.state !== "running" && audioUnlocked) {
+        try {
+          await audioCtx.resume();
+        } catch {
+          audioUnlocked = false;
+          soundBtn.textContent = "Enable Sound";
+          soundBtn.classList.add("sound-on");
+        }
+      }
     });
 
     setInterval(() => {
